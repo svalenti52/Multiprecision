@@ -20,24 +20,21 @@ int main()
 	u128 n = 1;
 	for (int ix = 1; ix <=89; ++ix)
 		n *= 2;
-	n -= 1;
+	n += 17;
 	const u128 n_minus_1 = n - 1;
 	u128 q = n_minus_1;
 
-	for (powers_of_2 = 0; powers_of_2 < 89; ++powers_of_2)
-		if (bit_test(q, 0) == 0)
-		{
-			q /= 2;
-			continue;
-		}
-		else
-		{
-			odd_factor = q;
-			break;
-		}
+	for (powers_of_2 = 0; powers_of_2 < 89; ++powers_of_2) {
+        if (bit_test(q, 0) == 0) {
+            q /= 2;
+            continue;
+        } else {
+            odd_factor = q;
+            break;
+        }
+    }
+    if (powers_of_2 == 89) odd_factor = 1;
 
-	// n_minus_1 = powm(x, y);
-	
 	bool composite = true;
 	
 	for (; base < 52; ++base)
@@ -45,26 +42,31 @@ int main()
 		u128 first_test = powm(base, odd_factor, n);
 		if (first_test == 1 || first_test == n_minus_1)
 		{
-			composite = false;
-			break;
+            // continue;  // passed first pseudo prime test, don't need second test
 		}
 		else
 		{
-			for (int ix = 0; ix < powers_of_2; ++ix)
+            u128 next_power_2 = 2;
+            int ix = 1;
+			for (; ix < powers_of_2; ++ix)
 			{
-				u128 second_test = powm(first_test, 2, n);
+				u128 second_test = powm(base, odd_factor*next_power_2, n);
 				if (second_test == n_minus_1)
 				{
-					composite = false;
-					break;
+					break; // found pseudo prime requirement so get out of inner loop
 				}
+                next_power_2 *= 2;
 			}
-			if (composite)
-				break;
+            if (ix == powers_of_2) { // this is key to detecting composite property
+                // composite = true; // the inner loop did NOT find pseudo prime property
+                break; // we break out of outer loop BEFORE base gets to 52 (in this case)
+            }
 		}
 	}
+    if (base == 52)
+        composite = false;
 		
-	std::cout << powers_of_2 << "  " << odd_factor << '\n';
+	std::cout << powers_of_2 << "  " << odd_factor << "\n";
 	std::cout << "composite = " << composite << '\n';
 	
 	std::default_random_engine dre;
